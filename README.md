@@ -2,67 +2,255 @@
 
 Website monitoring dan prediksi kondisi pertanian padi berbasis data iklim, produktivitas, dan hasil pemodelan.
 
-Demo: https://pantaupadi.vercel.app/
+🔗 https://pantaupadi.vercel.app/
 
 ---
 
 ## Deskripsi
 
-**pantaupadi** adalah project web sederhana yang dibuat untuk membantu melihat kondisi pertanian padi dari beberapa sisi, seperti iklim, produktivitas, tren data, prediksi, dan potensi risiko.
+pantaupadi adalah project eksplorasi data pertanian padi yang fokus pada analisis hubungan antara kondisi iklim, produktivitas, dan risiko pertanian.
 
-Project ini menggunakan data berbentuk CSV yang sudah diproses terlebih dahulu melalui tahap cleaning, penggabungan dataset, feature engineering, modeling, evaluasi, sampai menghasilkan file prediksi yang ditampilkan di website.
+Selain monitoring, project ini juga melakukan prediksi kondisi padi untuk beberapa periode ke depan menggunakan pipeline data science sederhana.
 
-Secara umum, project ini berisi dua bagian utama:
-
-1. **Website**
-   - Dibuat menggunakan HTML, CSS, dan JavaScript.
-   - Berfungsi untuk menampilkan dashboard, peta, grafik, insight, dan hasil prediksi.
-
-2. **Data & Modeling**
-   - Berisi dataset mentah, dataset hasil cleaning, tabel fitur, tabel modeling, hasil evaluasi, dan hasil prediksi.
+Project ini terdiri dari:
+- Website (visualisasi & dashboard)
+- Data processing & modeling (notebook)
+- Dataset hasil olahan (CSV)
 
 ---
 
-## Fitur Utama
+## Fitur
 
-### 1. Monitoring Data Padi
-
-Menampilkan informasi terkait kondisi pertanian padi berdasarkan dataset yang sudah disiapkan.
-
-Fitur ini dapat digunakan untuk melihat gambaran umum data seperti produktivitas, kondisi wilayah, dan data pendukung lainnya.
-
----
-
-### 2. Visualisasi Tren
-
-Website menyediakan tampilan tren agar perubahan data bisa lebih mudah dibaca.
-
-Contohnya:
-- tren produktivitas
-- perubahan data dari waktu ke waktu
-- perbandingan antar periode
+- Monitoring kondisi padi
+- Visualisasi tren data
+- Visualisasi peta
+- Analisis risiko
+- Prediksi bulan depan
+- Prediksi multi bulan
+- Halaman insight / aksi
 
 ---
 
-4. Prediksi
+## Struktur Project
 
-Project ini memiliki hasil prediksi untuk periode mendatang.
+```
+   pantaupadi/
+│
+├── index.html
+├── pantauaksi.html
+├── pantauburamalan.html
+├── pantaumap.html
+├── pantaurawan.html
+├── pantaurend.html
+│
+├── app.js
+├── style.css
+│
+├── final_iklim.csv
+├── full_dataset.csv
+├── mergepadi.csv
+├── produktivias.csv
+│
+├── PantauPadi_EDA.ipynb
+├── pantaupadi_Feature.ipynb
+├── PantauPadi_Modeling.ipynb
+├── 04_PantauPadi_Forecast.ipynb
+│
+├── pantaupadi_feature_table_final.csv
+├── pantaupadi_feature_table_final_clean.csv
+├── pantaupadi_modeling_table_final.csv
+├── pantaupadi_modeling_table_final_clean.csv
+├── pantaupadi_evaluasi_multi_horizon.csv
+│
+├── pantaupadi_prediksi_bulan_depan_2026.csv
+├── pantaupadi_prediksi_mei_agustus_2026.csv
+│
+├── pantaupadi_latest_risk_2026_final.csv
+├── pantaupadi_latest_risk_2026_final_clean.csv
+│
+└── README.md
 
-File prediksi yang digunakan:
+````
 
-pantaupadi_prediksi_bulan_depan_2026.csv
-pantaupadi_prediksi_mei_agustus_2026.csv
 
-Prediksi ini digunakan untuk melihat kemungkinan kondisi padi pada bulan berikutnya atau beberapa bulan ke depan.
+---
 
-5. Analisis Risiko
+## Alur Project
+```
+Data mentah
+↓
+EDA
+↓
+Cleaning & Feature Engineering
+↓
+Modeling & Evaluasi
+↓
+Forecast / Prediksi
+↓
+Visualisasi di Website
+```
 
-Project ini juga menampilkan data risiko terbaru.
 
-File yang digunakan:
+---
 
-pantaupadi_latest_risk_2026_final.csv
-pantaupadi_latest_risk_2026_final_clean.csv
+## Penjelasan Dataset (CSV)
 
-Bagian ini dapat digunakan untuk melihat wilayah atau periode yang memiliki potensi risiko lebih tinggi.
+### 1. Dataset Awal
 
+#### `final_iklim.csv`
+Berisi data kondisi iklim yang digunakan dalam analisis.
+
+Biasanya mencakup:
+- curah hujan
+- suhu
+- kelembaban
+- parameter iklim lainnya
+
+Digunakan sebagai variabel utama yang mempengaruhi produktivitas padi.
+
+---
+
+#### `produktivias.csv`
+Berisi data hasil panen atau produktivitas padi.
+
+Digunakan untuk:
+- target variabel dalam modeling
+- analisis tren produksi
+
+---
+
+#### `mergepadi.csv`
+Dataset hasil penggabungan antara:
+- data iklim
+- data produktivitas
+
+Digunakan sebagai dataset awal sebelum dilakukan feature engineering.
+
+---
+
+#### `full_dataset.csv`
+Dataset gabungan yang lebih lengkap setelah preprocessing awal.
+
+Biasanya sudah:
+- lebih bersih
+- siap untuk tahap feature engineering
+
+---
+
+### 2. Feature Engineering
+
+#### `pantaupadi_feature_table_final.csv`
+Dataset hasil feature engineering.
+
+Berisi:
+- variabel asli + variabel turunan
+- fitur tambahan untuk meningkatkan performa model
+
+---
+
+#### `pantaupadi_feature_table_final_clean.csv`
+Versi clean dari feature table.
+
+Biasanya sudah:
+- tanpa missing value
+- tanpa noise
+- siap masuk ke modeling
+
+---
+
+### 3. Modeling
+
+#### `pantaupadi_modeling_table_final.csv`
+Dataset yang digunakan langsung untuk training model.
+
+Biasanya:
+- sudah difilter
+- sudah disesuaikan dengan kebutuhan model
+
+---
+
+#### `pantaupadi_modeling_table_final_clean.csv`
+Versi bersih dari dataset modeling.
+
+Digunakan untuk memastikan:
+- kualitas data lebih stabil
+- hasil model lebih konsisten
+
+---
+
+#### `pantaupadi_evaluasi_multi_horizon.csv`
+Berisi hasil evaluasi model untuk beberapa horizon waktu.
+
+Digunakan untuk:
+- membandingkan performa model
+- melihat akurasi prediksi jangka pendek vs panjang
+
+---
+
+### 4. Prediksi
+
+#### `pantaupadi_prediksi_bulan_depan_2026.csv`
+Berisi hasil prediksi untuk bulan berikutnya.
+
+Digunakan di website untuk:
+- menampilkan kondisi mendatang secara langsung
+
+---
+
+#### `pantaupadi_prediksi_mei_agustus_2026.csv`
+Berisi prediksi untuk beberapa bulan ke depan (multi horizon).
+
+Digunakan untuk:
+- analisis jangka menengah
+- melihat tren prediksi
+
+---
+
+### 5. Risiko
+
+#### `pantaupadi_latest_risk_2026_final.csv`
+Berisi data risiko terbaru.
+
+Digunakan untuk:
+- identifikasi wilayah rawan
+- analisis potensi masalah
+
+---
+
+#### `pantaupadi_latest_risk_2026_final_clean.csv`
+Versi clean dari data risiko.
+
+Digunakan untuk:
+- visualisasi yang lebih stabil
+- analisis lanjutan
+
+---
+
+## Notebook Pipeline
+
+### EDA → `PantauPadi_EDA.ipynb`
+Eksplorasi data awal:
+- distribusi
+- pola
+- missing value
+
+---
+
+### Feature Engineering → `pantaupadi_Feature.ipynb`
+- cleaning
+- transformasi data
+- pembuatan fitur baru
+
+---
+
+### Modeling → `PantauPadi_Modeling.ipynb`
+- training model
+- evaluasi performa
+
+---
+
+### Forecast → `04_PantauPadi_Forecast.ipynb`
+- generate prediksi
+- multi horizon forecasting
+
+---
