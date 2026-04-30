@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PantauPadi - PantauRamalan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+</head>
+<body>
+<div class="app-container">
+  <aside class="sidebar">
+    <div class="logo"><i class="fas fa-seedling"></i><span>PantauPadi</span></div>
+    <nav class="nav-menu">
+      <a href="index.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+      <a href="pantaumap.html" class="nav-item"><i class="fas fa-map-marked-alt"></i><span>PantauMap</span></a>
+      <a href="pantaurend.html" class="nav-item"><i class="fas fa-chart-line"></i><span>PantauTrend</span></a>
+      <a href="pantauburamalan.html" class="nav-item active"><i class="fas fa-cloud-sun-rain"></i><span>PantauRamalan</span></a>
+      <a href="pantaurawan.html" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>PantauRawan</span></a>
+      <a href="pantauaksi.html" class="nav-item"><i class="fas fa-hands-helping"></i><span>PantauAksi</span></a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-badge"><i class="fas fa-circle"></i><span>Sistem Aktif</span></div>
+      <div class="version">v2.0 Intelligence</div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="content-header">
+      <div class="header-title">
+        <h1>PantauRamalan</h1>
+        <p>Prediksi kerawanan bulan depan</p>
+      </div>
+      <div class="header-actions">
+        <div class="date-time" id="currentDateTime"></div>
+        <button class="refresh-btn" onclick="location.reload()">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <div class="list-container">
+          <h3><i class="fas fa-cloud-sun-rain"></i> Daftar Wilayah Prediksi</h3>
+          <select id="bulanSelect" class="custom-select"></select>
+          <ul id="predictionList" class="custom-list"></ul>
+        </div>
+
+        <div class="list-container">
+          <h3><i class="fas fa-circle-info"></i> Detail Wilayah</h3>
+          <div id="detailWilayah">
+            <p style="opacity: 0.7;">Klik salah satu wilayah untuk melihat detail prediksi.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="app.js"></script>
+<script>
+  function riskLabelIndo(label) {
+    if (label === "low") return "AMAN";
+    if (label === "medium") return "WASPADA";
+    if (label === "high") return "KRITIS";
+    return label ? label.toUpperCase() : "-";
+  }
+
+  function getFaktorDominan(d) {
+    if (d.faktor_dominan) return d.faktor_dominan;
+
+    const climateScore = Number(d.climate_score || 0);
+    const historicalScore = Number(d.historical_score || 0);
+
+    if (climateScore > historicalScore) return "Faktor iklim lebih dominan";
+    if (historicalScore > climateScore) return "Sensitivitas historis wilayah";
+    return "Belum tersedia";
+  }
+
+  function showDetailWilayah(d) {
+    const labelRisiko = riskLabelIndo(d.risk_label);
+    const faktorDominan = getFaktorDominan(d);
+
+    document.getElementById("detailWilayah").innerHTML = `
+      <div style="padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.04);">
+        <h2 style="margin-bottom: 12px;">${d.wilayah || "-"}</h2>
+
+        <ul class="custom-list">
+          <li><span>Label Risiko</span><strong>${labelRisiko} (${(d.risk_label || "-").toUpperCase()})</strong></li>
+          <li><span>Final Score</span><strong>${d.final_score || "-"}</strong></li>
+          <li><span>Climate Score</span><strong>${d.climate_score || "-"}</strong></li>
+          <li><span>Historical Score</span><strong>${d.historical_score || "-"}</strong></li>
+          <li><span>Faktor Dominan</span><strong>${faktorDominan}</strong></li>
+          <li><span>HTH</span><strong>${d.HTH || d.hth || "-"}</strong></li>
+          <li><span>ATi</span><strong>${d.ATi || d.ati || "-"}</strong></li>
+        </ul>
+      </div>
+    `;
+  }
+
+  function initRamalan(data) {
+    const bulanSet = [...new Set(data.prediction.map(d => d.bulan_prediksi))];
+    const select = document.getElementById("bulanSelect");
+
+    bulanSet.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b;
+      opt.innerText = b;
+      select.appendChild(opt);
+    });
+
+    function updateList() {
+      const filtered = data.prediction.filter(d => d.bulan_prediksi === select.value);
+
+      document.getElementById("predictionList").innerHTML = filtered.map((d, index) => `
+        <li onclick="showDetailWilayah(window.filteredPrediction[${index}])" style="cursor: pointer;">
+          <span class="risk-badge risk-${d.risk_label}">
+            ${riskLabelIndo(d.risk_label)}
+          </span>
+          ${d.wilayah}
+        </li>
+      `).join("");
+
+      window.filteredPrediction = filtered;
+
+      if (filtered.length > 0) {
+        showDetailWilayah(filtered[0]);
+      }
+    }
+
+    select.addEventListener("change", updateList);
+    updateList();
+  }
+
+  window.onDataLoad = initRamalan;
+
+  function updateDateTime() {
+    const n = new Date();
+    document.getElementById("currentDateTime").innerHTML =
+      n.toLocaleDateString("id-ID") +
+      " | " +
+      n.toLocaleTimeString("id-ID", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+  }
+
+  updateDateTime();
+  setInterval(updateDateTime, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PantauPadi - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  </head>
+
+  <body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="logo">
+          <i class="fas fa-seedling"></i>
+          <span>PantauPadi</span>
+        </div>
+
+        <nav class="nav-menu">
+          <a href="index.html" class="nav-item active"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+          <a href="pantaumap.html" class="nav-item"><i class="fas fa-map-marked-alt"></i><span>PantauMap</span></a>
+          <a href="pantaurend.html" class="nav-item"><i class="fas fa-chart-line"></i><span>PantauTrend</span></a>
+          <a href="pantauburamalan.html" class="nav-item"><i class="fas fa-cloud-sun-rain"></i><span>PantauRamalan</span></a>
+          <a href="pantaurawan.html" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>PantauRawan</span></a>
+          <a href="pantauaksi.html" class="nav-item"><i class="fas fa-hands-helping"></i><span>PantauAksi</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="status-badge"><i class="fas fa-circle"></i><span>Sistem Aktif</span></div>
+          <div class="version">v2.0 Intelligence</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="content-header">
+          <div class="header-title">
+            <h1>Dashboard</h1>
+            <p>Early warning risiko panen padi di Jawa Timur</p>
+          </div>
+
+          <div class="header-actions">
+            <div class="date-time" id="currentDateTime"></div>
+            <button class="refresh-btn" onclick="location.reload()">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="page-content" id="page-content">
+          <div class="dashboard-cards" id="dashboardCards"></div>
+
+          <div class="list-container" style="margin-top: 24px">
+            <h3><i class="fas fa-chart-simple"></i> Ringkasan Cepat</h3>
+            <ul class="custom-list" id="summaryList"></ul>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+
+    <script>
+      function updateDashboard(data) {
+        const low = data.current.filter((d) => d.risk_label === "low").length;
+        const medium = data.current.filter((d) => d.risk_label === "medium").length;
+        const high = data.current.filter((d) => d.risk_label === "high").length;
+
+        const sorted = [...data.current].sort((a, b) => b.final_score - a.final_score);
+
+        const avgScore = (
+          data.current.reduce((a, b) => a + Number(b.final_score), 0) /
+          data.current.length
+        ).toFixed(1);
+
+        const wilayahPrioritas = sorted[0]?.wilayah || "-";
+        const faktorDominan = sorted[0]?.faktor_dominan || "Sensitivitas historis wilayah";
+
+        document.getElementById("dashboardCards").innerHTML = `
+          <div class="stat-card low">
+            <h3><i class="fas fa-shield-alt"></i> AMAN (LOW)</h3>
+            <div class="stat-number">${low}</div>
+            <div class="stat-label">Wilayah Risiko Rendah</div>
+          </div>
+
+          <div class="stat-card medium">
+            <h3><i class="fas fa-exclamation-circle"></i> WASPADA (MEDIUM)</h3>
+            <div class="stat-number">${medium}</div>
+            <div class="stat-label">Wilayah Risiko Sedang</div>
+          </div>
+
+          <div class="stat-card high">
+            <h3><i class="fas fa-skull-crosswalk"></i> KRITIS (HIGH)</h3>
+            <div class="stat-number">${high}</div>
+            <div class="stat-label">Wilayah Risiko Tinggi</div>
+          </div>
+        `;
+
+        document.getElementById("summaryList").innerHTML = `
+          <li><span>Total Wilayah Terpantau</span><strong>${data.current.length}</strong></li>
+          <li><span>Tingkat Kerawanan Tertinggi</span><strong>${sorted[0]?.wilayah || "-"}</strong></li>
+          <li><span>Skor Risiko Rata-rata</span><strong>${avgScore}</strong></li>
+          <li><span>Wilayah Prioritas Saat Ini</span><strong>${wilayahPrioritas}</strong></li>
+          <li><span>Faktor Dominan Saat Ini</span><strong>${faktorDominan}</strong></li>
+        `;
+      }
+
+      window.onDataLoad = updateDashboard;
+
+      function updateDateTime() {
+        const n = new Date();
+        document.getElementById("currentDateTime").innerHTML =
+          n.toLocaleDateString("id-ID") +
+          " | " +
+          n.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+    </script>
+  </body>
+</html>

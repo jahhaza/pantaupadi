@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PantauPadi - PantauTrend</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  </head>
+  <body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="logo"><i class="fas fa-seedling"></i><span>PantauPadi</span></div>
+        <nav class="nav-menu">
+          <a href="index.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+          <a href="pantaumap.html" class="nav-item"><i class="fas fa-map-marked-alt"></i><span>PantauMap</span></a>
+          <a href="pantaurend.html" class="nav-item active"><i class="fas fa-chart-line"></i><span>PantauTrend</span></a>
+          <a href="pantauburamalan.html" class="nav-item"><i class="fas fa-cloud-sun-rain"></i><span>PantauRamalan</span></a>
+          <a href="pantaurawan.html" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>PantauRawan</span></a>
+          <a href="pantauaksi.html" class="nav-item"><i class="fas fa-hands-helping"></i><span>PantauAksi</span></a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="status-badge"><i class="fas fa-circle"></i><span>Sistem Aktif</span></div>
+          <div class="version">v2.0 Intelligence</div>
+        </div>
+      </aside>
+      <main class="main-content">
+        <header class="content-header">
+          <div class="header-title">
+            <h1>PantauTrend</h1>
+            <p>Grafik tren risiko per wilayah</p>
+          </div>
+          <div class="header-actions">
+            <div class="date-time" id="currentDateTime"></div>
+            <button class="refresh-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+          </div>
+        </header>
+        <div class="page-content">
+          <div class="chart-container"><canvas id="trendChart"></canvas></div>
+        </div>
+      </main>
+    </div>
+    <script src="app.js"></script>
+    <script>
+      let existingChart = null;
+      function initChart(data) {
+        const ctx = document.getElementById("trendChart").getContext("2d");
+        if (existingChart) existingChart.destroy();
+        existingChart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: data.current.slice(0, 15).map((d) => (d.wilayah.length > 12 ? d.wilayah.slice(0, 10) + "..." : d.wilayah)),
+            datasets: [
+              {
+                label: "Risk Score",
+                data: data.current.slice(0, 15).map((d) => Number(d.final_score)),
+                borderColor: "#22c55e",
+                backgroundColor: "rgba(34,197,94,0.05)",
+                borderWidth: 2,
+                pointRadius: 4,
+                pointBackgroundColor: "#22c55e",
+                tension: 0.3,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: { legend: { labels: { color: "#e2e8f0" } } },
+            scales: { y: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { color: "#94a3b8" } }, x: { ticks: { color: "#94a3b8", rotation: 45, font: { size: 10 } } } },
+          },
+        });
+      }
+      window.onDataLoad = initChart;
+      function updateDateTime() {
+        const n = new Date();
+        document.getElementById("currentDateTime").innerHTML = n.toLocaleDateString("id-ID") + " | " + n.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      }
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PantauPadi - PantauMap</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+  </head>
+
+  <body>
+    <div class="app-container">
+      <aside class="sidebar">
+        <div class="logo"><i class="fas fa-seedling"></i><span>PantauPadi</span></div>
+        <nav class="nav-menu">
+          <a href="index.html" class="nav-item"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a>
+          <a href="pantaumap.html" class="nav-item active"><i class="fas fa-map-marked-alt"></i><span>PantauMap</span></a>
+          <a href="pantaurend.html" class="nav-item"><i class="fas fa-chart-line"></i><span>PantauTrend</span></a>
+          <a href="pantauburamalan.html" class="nav-item"><i class="fas fa-cloud-sun-rain"></i><span>PantauRamalan</span></a>
+          <a href="pantaurawan.html" class="nav-item"><i class="fas fa-exclamation-triangle"></i><span>PantauRawan</span></a>
+          <a href="pantauaksi.html" class="nav-item"><i class="fas fa-hands-helping"></i><span>PantauAksi</span></a>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="status-badge"><i class="fas fa-circle"></i><span>Sistem Aktif</span></div>
+          <div class="version">v2.0 Intelligence</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="content-header">
+          <div class="header-title">
+            <h1>PantauMap</h1>
+            <p>Visualisasi sebaran kerawanan padi</p>
+          </div>
+          <div class="header-actions">
+            <div class="date-time" id="currentDateTime"></div>
+            <button class="refresh-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+          </div>
+        </header>
+
+        <div class="page-content">
+          <div class="map-container">
+            <div id="map" style="height: 550px"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+
+    <script>
+      let currentMap = null;
+
+      function riskLabelIndo(label) {
+        if (label === "low") return "AMAN";
+        if (label === "medium") return "WASPADA";
+        if (label === "high") return "KRITIS";
+        return label ? label.toUpperCase() : "-";
+      }
+
+      function getFaktorDominan(d) {
+        if (d.faktor_dominan) return d.faktor_dominan;
+        if (Number(d.climate_score) > Number(d.historical_score)) return "Faktor iklim lebih dominan";
+        if (Number(d.historical_score) > Number(d.climate_score)) return "Sensitivitas historis wilayah";
+        return "Belum tersedia";
+      }
+
+      function initMap(data) {
+        if (currentMap) currentMap.remove();
+
+        currentMap = L.map("map").setView([-7.5, 112], 7);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          attribution: "© OpenStreetMap",
+        }).addTo(currentMap);
+
+        data.current.forEach((d) => {
+          const color =
+            d.risk_label === "high"
+              ? "#ef4444"
+              : d.risk_label === "medium"
+              ? "#fbbf24"
+              : "#22c55e";
+
+          const radius =
+            d.risk_label === "high"
+              ? 10
+              : d.risk_label === "medium"
+              ? 8
+              : 6;
+
+          const labelRisiko = riskLabelIndo(d.risk_label);
+          const faktorDominan = getFaktorDominan(d);
+
+          const popupContent = `
+            <div style="min-width: 220px">
+              <h3 style="margin: 0 0 8px 0; font-size: 16px;">
+                ${d.wilayah || "-"}
+              </h3>
+
+              <div style="margin-bottom: 6px;">
+                <strong>Label Risiko:</strong>
+                <span style="color:${color}; font-weight:700;">
+                  ${labelRisiko} (${(d.risk_label || "-").toUpperCase()})
+                </span>
+              </div>
+
+              <div><strong>Final Score:</strong> ${d.final_score || "-"}</div>
+              <div><strong>Climate Score:</strong> ${d.climate_score || "-"}</div>
+              <div><strong>Historical Score:</strong> ${d.historical_score || "-"}</div>
+              <div><strong>Faktor Dominan:</strong> ${faktorDominan}</div>
+            </div>
+          `;
+
+          L.circleMarker(
+            [-7.5 + (Math.random() - 0.5) * 2, 112 + (Math.random() - 0.5) * 2],
+            {
+              color: color,
+              radius: radius,
+              fillColor: color,
+              fillOpacity: 0.7,
+              weight: 2,
+            }
+          )
+            .addTo(currentMap)
+            .bindPopup(popupContent);
+        });
+      }
+
+      window.onDataLoad = initMap;
+
+      function updateDateTime() {
+        const n = new Date();
+        document.getElementById("currentDateTime").innerHTML =
+          n.toLocaleDateString("id-ID") +
+          " | " +
+          n.toLocaleTimeString("id-ID", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+      }
+
+      updateDateTime();
+      setInterval(updateDateTime, 60000);
+    </script>
+  </body>
+</html>
